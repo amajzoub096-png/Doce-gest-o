@@ -87,7 +87,6 @@ export default function Pedidos() {
           </div>
           <button className="btn btn-primary" onClick={openNew}><i className="ti ti-plus" /> Novo pedido</button>
         </div>
-
         {view === 'kanban' ? (
           <div className="kanban">
             {COLS.map(col => {
@@ -138,6 +137,80 @@ export default function Pedidos() {
           </div>
         )}
       </div>
-
       {modal && (
-        <div className="modal-overlay" o
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setModal(null)}>
+          <div className="modal" style={{ maxWidth: 580 }}>
+            <div className="modal-title">{modal === 'new' ? 'Novo pedido' : 'Editar pedido'}</div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Canal de venda</label>
+                <select value={form.canal || ''} onChange={e => setForm({ ...form, canal: e.target.value })}>
+                  {Object.entries(CANAIS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Status</label>
+                <select value={form.status || 'pendente'} onChange={e => setForm({ ...form, status: e.target.value })}>
+                  {Object.entries(STATUS_PEDIDO).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Cliente</label>
+                <input value={form.cliente_nome || ''} onChange={e => setForm({ ...form, cliente_nome: e.target.value })} placeholder="Nome do cliente ou pedido" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Data de entrega</label>
+                <input type="date" value={form.data_entrega || ''} onChange={e => setForm({ ...form, data_entrega: e.target.value })} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Itens do pedido</label>
+              {itens.map((item, idx) => (
+                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 80px 100px 30px', gap: 6, marginBottom: 6 }}>
+                  <select value={item.produto_id} onChange={e => updateItem(idx, 'produto_id', e.target.value)}>
+                    <option value="">Selecione um produto</option>
+                    {produtos.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+                  </select>
+                  <input type="number" min="1" value={item.quantidade} onChange={e => updateItem(idx, 'quantidade', Number(e.target.value))} placeholder="Qtd" />
+                  <input type="number" min="0" step="0.01" value={item.preco_unitario} onChange={e => updateItem(idx, 'preco_unitario', Number(e.target.value))} placeholder="Preço un." />
+                  <button className="btn btn-danger btn-icon btn-sm" onClick={() => removeItem(idx)}><i className="ti ti-x" /></button>
+                </div>
+              ))}
+              <button className="btn btn-ghost btn-sm" onClick={addItem} style={{ marginTop: 4 }}><i className="ti ti-plus" /> Adicionar item</button>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg2)', borderRadius: 8, padding: '10px 14px', marginBottom: 10 }}>
+              <span style={{ fontSize: 14, color: 'var(--text2)' }}>Total do pedido</span>
+              <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--accent)' }}>{fmtBRL(valorTotal)}</span>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Observações</label>
+                <textarea value={form.observacoes || ''} onChange={e => setForm({ ...form, observacoes: e.target.value })} placeholder="Detalhes especiais..." style={{ minHeight: 52 }} />
+              </div>
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 20 }}>
+                <input type="checkbox" id="urgente" style={{ width: 'auto' }} checked={!!form.urgente} onChange={e => setForm({ ...form, urgente: e.target.checked })} />
+                <label htmlFor="urgente" style={{ fontSize: 14, color: 'var(--text)', cursor: 'pointer' }}>Marcar como urgente</label>
+              </div>
+            </div>
+            <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancelar</button>
+                {modal !== 'new' && <button className="btn btn-danger" onClick={() => del(form.id)}>Excluir</button>}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {modal !== 'new' && form.status !== 'entregue' && form.status !== 'cancelado' && (
+                  <button className="btn btn-secondary" onClick={() => avancar(form.id)}>
+                    <i className="ti ti-arrow-right" /> Avançar status
+                  </button>
+                )}
+                <button className="btn btn-primary" onClick={save}><i className="ti ti-check" /> Salvar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
