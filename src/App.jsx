@@ -39,8 +39,8 @@ export default function App() {
     <div className="app-layout">
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <h1>🍫 Doce Gestão</h1>
-          <span>ERP para confeitaria</span>
+          <h1>🍫 Gicooks</h1>
+<span>ERP para confeitaria</span>
         </div>
         <nav className="sidebar-nav">
           {NAV.map((item, i) =>
