@@ -63,11 +63,24 @@ function useStore(key, initial) {
       return saved ? JSON.parse(saved) : initial
     } catch { return initial }
   })
+
+  useEffect(() => {
+    function onStorage(e) {
+      if (e.key === key) {
+        try { setData(JSON.parse(e.newValue)) } catch {}
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [key])
+
   const update = (val) => {
     const next = typeof val === 'function' ? val(data) : val
     setData(next)
     localStorage.setItem(key, JSON.stringify(next))
+    window.dispatchEvent(new StorageEvent('storage', { key, newValue: JSON.stringify(next) }))
   }
+
   return [data, update]
 }
 
