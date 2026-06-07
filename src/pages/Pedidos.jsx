@@ -11,7 +11,8 @@ const COLS = [
 export default function Pedidos() {
   const [pedidos, setPedidos] = usePedidos()
   const [receitas] = useReceitas()
-const [ingredientes, setIngredientes] = useIngredientes()
+  const [ingredientes, setIngredientes] = useIngredientes()
+  const [clientes] = useClientes()
   const [produtos] = useProdutos()
   const [view, setView] = useState('kanban')
   const [search, setSearch] = useState('')
@@ -41,41 +42,38 @@ const [ingredientes, setIngredientes] = useIngredientes()
     setModal(null)
   }
 
-  function avancar(id) {
-  const next = { pendente: 'producao', producao: 'pronto', pronto: 'entregue' }
-  const pedido = pedidos.find(p => p.id === id)
-  if (!pedido || !next[pedido.status]) return
-
-  const novoStatus = next[pedido.status]
-
-  if (novoStatus === 'pronto') {
-    const novosIngredientes = [...ingredientes]
-
-    for (const item of pedido.itens || []) {
-      const receitasProd = receitas.filter(r => r.produto_id === item.produto_id)
-
-      for (const r of receitasProd) {
-        const idx = novosIngredientes.findIndex(i => i.id === r.ingrediente_id)
-        if (idx !== -1) {
-          const desconto = r.quantidade * item.quantidade
-          novosIngredientes[idx] = {
-            ...novosIngredientes[idx],
-            quantidade: Math.max(0, novosIngredientes[idx].quantidade - desconto)
-          }
-        }
-      }
-    }
-
-    setIngredientes(novosIngredientes)
+  function del(id) {
+    if (!confirm('Excluir pedido?')) return
+    setPedidos(pedidos.filter(p => p.id !== id))
+    setModal(null)
   }
-
-  setPedidos(pedidos.map(p => p.id === id ? { ...p, status: novoStatus } : p))
-  setModal(null)
-}
 
   function avancar(id) {
     const next = { pendente: 'producao', producao: 'pronto', pronto: 'entregue' }
-    setPedidos(pedidos.map(p => p.id === id && next[p.status] ? { ...p, status: next[p.status] } : p))
+    const pedido = pedidos.find(p => p.id === id)
+    if (!pedido || !next[pedido.status]) return
+
+    const novoStatus = next[pedido.status]
+
+    if (novoStatus === 'pronto') {
+      const novosIngredientes = [...ingredientes]
+      for (const item of pedido.itens || []) {
+        const receitasProd = receitas.filter(r => r.produto_id === item.produto_id)
+        for (const r of receitasProd) {
+          const idx = novosIngredientes.findIndex(i => i.id === r.ingrediente_id)
+          if (idx !== -1) {
+            const desconto = r.quantidade * item.quantidade
+            novosIngredientes[idx] = {
+              ...novosIngredientes[idx],
+              quantidade: Math.max(0, novosIngredientes[idx].quantidade - desconto)
+            }
+          }
+        }
+      }
+      setIngredientes(novosIngredientes)
+    }
+
+    setPedidos(pedidos.map(p => p.id === id ? { ...p, status: novoStatus } : p))
     setModal(null)
   }
 
