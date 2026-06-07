@@ -56,9 +56,11 @@ export default function Pedidos() {
     const novoStatus = next[pedido.status]
 
     if (novoStatus === 'pronto') {
-      const novosIngredientes = [...ingredientes]
+      const novosIngredientes = JSON.parse(localStorage.getItem('erp_ingredientes') || '[]')
+      const receitasAtuais = JSON.parse(localStorage.getItem('erp_receitas') || '[]')
+
       for (const item of pedido.itens || []) {
-        const receitasProd = receitas.filter(r => r.produto_id === item.produto_id)
+        const receitasProd = receitasAtuais.filter(r => r.produto_id === item.produto_id)
         for (const r of receitasProd) {
           const idx = novosIngredientes.findIndex(i => i.id === r.ingrediente_id)
           if (idx !== -1) {
@@ -70,6 +72,7 @@ export default function Pedidos() {
           }
         }
       }
+
       setIngredientes(novosIngredientes)
     }
 
