@@ -73,6 +73,7 @@ export default function Pedidos() {
         }
       }
 
+      localStorage.setItem('erp_ingredientes', JSON.stringify(novosIngredientes))
       setIngredientes(novosIngredientes)
     }
 
