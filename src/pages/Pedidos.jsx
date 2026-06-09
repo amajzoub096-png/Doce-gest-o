@@ -43,8 +43,39 @@ export default function Pedidos() {
   }
 
   function del(id) {
-    if (!confirm('Excluir pedido?')) return
+    if (!confirm('Excluir pedido? O estoque não será reposto.')) return
     setPedidos(pedidos.filter(p => p.id !== id))
+    setModal(null)
+  }
+
+  function cancelar(id) {
+    const pedido = pedidos.find(p => p.id === id)
+    if (!pedido) return
+    if (!confirm('Cancelar pedido? Se estava "Pronto", o estoque será reposto.')) return
+
+    if (pedido.status === 'pronto') {
+      const novosIngredientes = JSON.parse(localStorage.getItem('erp_ingredientes') || '[]')
+      const receitasAtuais = JSON.parse(localStorage.getItem('erp_receitas') || '[]')
+
+      for (const item of pedido.itens || []) {
+        const receitasProd = receitasAtuais.filter(r => r.produto_id === item.produto_id)
+        for (const r of receitasProd) {
+          const idx = novosIngredientes.findIndex(i => i.id === r.ingrediente_id)
+          if (idx !== -1) {
+            const reposicao = r.quantidade * item.quantidade
+            novosIngredientes[idx] = {
+              ...novosIngredientes[idx],
+              quantidade: novosIngredientes[idx].quantidade + reposicao
+            }
+          }
+        }
+      }
+
+      localStorage.setItem('erp_ingredientes', JSON.stringify(novosIngredientes))
+      setIngredientes(novosIngredientes)
+    }
+
+    setPedidos(pedidos.map(p => p.id === id ? { ...p, status: 'cancelado' } : p))
     setModal(null)
   }
 
@@ -225,8 +256,13 @@ export default function Pedidos() {
             </div>
             <div className="modal-footer" style={{ justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancelar</button>
+                <button className="btn btn-ghost" onClick={() => setModal(null)}>Fechar</button>
                 {modal !== 'new' && <button className="btn btn-danger" onClick={() => del(form.id)}>Excluir</button>}
+                {modal !== 'new' && form.status !== 'cancelado' && form.status !== 'entregue' && (
+                  <button className="btn btn-warning" onClick={() => cancelar(form.id)}>
+                    <i className="ti ti-ban" /> Cancelar pedido
+                  </button>
+                )}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 {modal !== 'new' && form.status !== 'entregue' && form.status !== 'cancelado' && (
